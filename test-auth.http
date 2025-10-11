@@ -1,0 +1,47 @@
+### Test Authentication API
+
+### 1. Sign Up
+POST http://localhost:3000/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 2. Sign In
+POST http://localhost:3000/auth/signin
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 3. Get Profile (Replace ACCESS_TOKEN with actual token)
+GET http://localhost:3000/auth/profile
+Authorization: Bearer ACCESS_TOKEN
+
+### 4. Refresh Token (Replace REFRESH_TOKEN with actual token)
+POST http://localhost:3000/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "REFRESH_TOKEN"
+}
+
+### 5. Get All Users (Replace ACCESS_TOKEN with actual token)
+GET http://localhost:3000/users
+Authorization: Bearer ACCESS_TOKEN
+
+### 6. Logout (Replace REFRESH_TOKEN with actual token)
+POST http://localhost:3000/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "REFRESH_TOKEN"
+}
+
+### 7. Google OAuth (Browser only)
+GET http://localhost:3000/auth/google
