@@ -10,6 +10,7 @@ import { User } from '../user/user.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
         limit: 10, // 10 requests per minute
       },
     ]),
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, GoogleStrategy],

@@ -7,7 +7,8 @@ import * as bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { User, AuthProvider } from '../user/user.entity';
 import { RefreshToken } from './refresh-token.entity';
-import { SignUpDto, SignInDto, AuthResponseDto, TokenPayload } from './dto/auth.dto';
+import { SignUpDto, SignInDto, AuthResponseDto, TokenPayload, VerifyEmailDto, ResendVerificationDto } from './dto/auth.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -18,9 +19,10 @@ export class AuthService {
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
-  async signUp(signUpDto: SignUpDto): Promise<AuthResponseDto> {
+  async signUp(signUpDto: SignUpDto): Promise<{ message: string; email: string }> {
     const { name, email, password } = signUpDto;
 
     // Check if user already exists
@@ -33,8 +35,9 @@ export class AuthService {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Generate email verification token
-    const emailVerificationToken = randomBytes(32).toString('hex');
+    // Generate email verification code (6 digits)
+    const emailVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Create user
     const user = this.userRepository.create({
@@ -42,17 +45,19 @@ export class AuthService {
       email,
       password: hashedPassword,
       provider: AuthProvider.LOCAL,
-      emailVerificationToken,
+      emailVerificationCode,
+      emailVerificationExpires,
+      isEmailVerified: false,
     });
 
     const savedUser = await this.userRepository.save(user);
 
-    // Generate tokens
-    const tokens = await this.generateTokens(savedUser);
+    // Send verification email
+    await this.emailService.sendVerificationCode(email, emailVerificationCode, name);
 
     return {
-      ...tokens,
-      user: this.sanitizeUser(savedUser),
+      message: 'Registration successful! Please check your email for verification code.',
+      email: email,
     };
   }
 
@@ -68,6 +73,11 @@ export class AuthService {
     // Check if user is active
     if (!user.isActive) {
       throw new UnauthorizedException('Account is deactivated');
+    }
+
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException('Please verify your email before signing in');
     }
 
     // Verify password for local auth
@@ -221,7 +231,15 @@ export class AuthService {
   }
 
   private sanitizeUser(user: User): any {
-    const { password, emailVerificationToken, passwordResetToken, passwordResetExpires, ...sanitized } = user;
+    const { 
+      password, 
+      emailVerificationToken, 
+      emailVerificationCode, 
+      emailVerificationExpires,
+      passwordResetToken, 
+      passwordResetExpires, 
+      ...sanitized 
+    } = user;
     return sanitized;
   }
 
@@ -230,5 +248,111 @@ export class AuthService {
       { userId, isRevoked: false },
       { isRevoked: true },
     );
+  }
+
+  async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<AuthResponseDto> {
+    const { email, code } = verifyEmailDto;
+
+    // Find user
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    // Check if verification code matches
+    if (user.emailVerificationCode !== code) {
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    // Check if code is expired
+    if (!user.emailVerificationExpires || user.emailVerificationExpires < new Date()) {
+      throw new BadRequestException('Verification code has expired');
+    }
+
+    // Update user as verified
+    user.isEmailVerified = true;
+    user.emailVerificationCode = null;
+    user.emailVerificationExpires = null;
+    await this.userRepository.save(user);
+
+    // Send welcome email
+    await this.emailService.sendWelcomeEmail(email, user.name);
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user);
+
+    return {
+      ...tokens,
+      user: this.sanitizeUser(user),
+    };
+  }
+
+  async resendVerificationCode(resendDto: ResendVerificationDto): Promise<{ message: string }> {
+    const { email } = resendDto;
+
+    // Find user
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    // Generate new verification code
+    const emailVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const emailVerificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Update user with new code
+    user.emailVerificationCode = emailVerificationCode;
+    user.emailVerificationExpires = emailVerificationExpires;
+    await this.userRepository.save(user);
+
+    // Send verification email
+    await this.emailService.sendVerificationCode(email, emailVerificationCode, user.name);
+
+    return {
+      message: 'Verification code sent to your email',
+    };
+  }
+
+  async exchangeGoogleToken(googleAccessToken: string): Promise<AuthResponseDto> {
+    try {
+      // Verify the Google access token and get user info
+      const response = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${googleAccessToken}`);
+      
+      if (!response.ok) {
+        throw new UnauthorizedException('Invalid Google access token');
+      }
+      
+      const googleUser = await response.json();
+      
+      if (!googleUser.email) {
+        throw new UnauthorizedException('Invalid Google user data');
+      }
+      
+      // Find or create user
+      const user = await this.findOrCreateGoogleUser(googleUser);
+      
+      // Generate tokens
+      const tokens = await this.generateTokens(user);
+      
+      return {
+        ...tokens,
+        user: this.sanitizeUser(user),
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Google authentication failed');
+    }
   }
 }

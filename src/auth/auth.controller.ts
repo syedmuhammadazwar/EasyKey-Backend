@@ -6,7 +6,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { SignUpDto, SignInDto, RefreshTokenDto, AuthResponseDto } from './dto/auth.dto';
+import { SignUpDto, SignInDto, RefreshTokenDto, AuthResponseDto, VerifyEmailDto, ResendVerificationDto } from './dto/auth.dto';
 import { User } from '../user/user.entity';
 
 @Controller('auth')
@@ -17,7 +17,7 @@ export class AuthController {
   @Public()
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  async signUp(@Body() signUpDto: SignUpDto): Promise<AuthResponseDto> {
+  async signUp(@Body() signUpDto: SignUpDto): Promise<{ message: string; email: string }> {
     return this.authService.signUp(signUpDto);
   }
 
@@ -89,5 +89,26 @@ export class AuthController {
   async revokeAllTokens(@CurrentUser() user: User): Promise<{ message: string }> {
     await this.authService.revokeAllUserTokens(user.id);
     return { message: 'All tokens revoked successfully' };
+  }
+
+  @Public()
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<AuthResponseDto> {
+    return this.authService.verifyEmail(verifyEmailDto);
+  }
+
+  @Public()
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  async resendVerificationCode(@Body() resendDto: ResendVerificationDto): Promise<{ message: string }> {
+    return this.authService.resendVerificationCode(resendDto);
+  }
+
+  @Public()
+  @Post('google/token')
+  @HttpCode(HttpStatus.OK)
+  async googleTokenExchange(@Body() body: { accessToken: string }): Promise<AuthResponseDto> {
+    return this.authService.exchangeGoogleToken(body.accessToken);
   }
 }

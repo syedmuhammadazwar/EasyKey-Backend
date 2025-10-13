@@ -27,6 +27,20 @@ export class RefreshTokenDto {
   refreshToken: string;
 }
 
+export class VerifyEmailDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  code: string;
+}
+
+export class ResendVerificationDto {
+  @IsEmail()
+  email: string;
+}
+
 export class GoogleAuthDto {
   @IsString()
   code: string;

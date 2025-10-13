@@ -1,0 +1,181 @@
+### EasyKey Backend API Tests
+### Use with REST Client extension in VS Code
+
+@baseUrl = http://localhost:3000
+@accessToken = 
+@refreshToken = 
+
+### ============================================
+### AUTHENTICATION ENDPOINTS
+### ============================================
+
+### 1. Sign Up - Register new user
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 2. Sign In - Login user
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 3. Get Profile - Get current user profile (requires token)
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{accessToken}}
+
+### 4. Refresh Token - Get new access token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 5. Logout - Logout from current device
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 6. Logout All Devices - Logout from all devices
+POST {{baseUrl}}/auth/logout-all
+Authorization: Bearer {{accessToken}}
+
+### 7. Revoke All Tokens - Revoke all user tokens
+POST {{baseUrl}}/auth/revoke-all-tokens
+Authorization: Bearer {{accessToken}}
+
+### 8. Google OAuth - Initiate Google OAuth (browser only)
+GET {{baseUrl}}/auth/google
+
+### ============================================
+### USER MANAGEMENT ENDPOINTS
+### ============================================
+
+### 9. Get All Users - Get list of all users (requires token)
+GET {{baseUrl}}/users
+Authorization: Bearer {{accessToken}}
+
+### 10. Get User by ID - Get specific user (requires token)
+GET {{baseUrl}}/users/1
+Authorization: Bearer {{accessToken}}
+
+### 11. Create User - Create new user (requires token)
+POST {{baseUrl}}/users
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "New User",
+  "email": "newuser@example.com"
+}
+
+### 12. Delete User - Delete user (requires token, own account or admin)
+DELETE {{baseUrl}}/users/1
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### ERROR TESTING
+### ============================================
+
+### 13. Test Protected Route Without Token (should return 401)
+GET {{baseUrl}}/users
+
+### 14. Test Invalid Login (should return 401)
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "wrong@example.com",
+  "password": "wrongpassword"
+}
+
+### 15. Test Duplicate Signup (should return 409)
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Duplicate User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 16. Test Invalid Refresh Token (should return 401)
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid_token"
+}
+
+### ============================================
+### COMPLETE WORKFLOW TEST
+### ============================================
+
+### Step 1: Sign up a new user
+# @name signup
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Workflow Test User",
+  "email": "workflow@example.com",
+  "password": "password123"
+}
+
+### Step 2: Sign in with the same user
+# @name signin
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "workflow@example.com",
+  "password": "password123"
+}
+
+### Step 3: Get profile using token from signin
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{signin.response.body.accessToken}}
+
+### Step 4: Get all users using token
+GET {{baseUrl}}/users
+Authorization: Bearer {{signin.response.body.accessToken}}
+
+### Step 5: Refresh token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{signin.response.body.refreshToken}}"
+}
+
+### Step 6: Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{signin.response.body.refreshToken}}"
+}
+
+### ============================================
+### NOTES
+### ============================================
+### 
+### 1. Replace {{accessToken}} and {{refreshToken}} with actual tokens from responses
+### 2. Use the REST Client extension in VS Code to send requests
+### 3. The @name directive allows you to reference response data in subsequent requests
+### 4. All user management endpoints require authentication
+### 5. Public endpoints: signup, signin, refresh, google oauth
+### 6. Protected endpoints: profile, logout-all, revoke-tokens, all user endpoints
+
