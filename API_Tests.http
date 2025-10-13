@@ -59,19 +59,36 @@ Authorization: Bearer {{accessToken}}
 ### 8. Google OAuth - Initiate Google OAuth (browser only)
 GET {{baseUrl}}/auth/google
 
+### 9. Verify Email - Verify email with 6-digit code
+POST {{baseUrl}}/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "code": "123456"
+}
+
+### 10. Resend Verification Code - Resend verification code to email
+POST {{baseUrl}}/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
 ### ============================================
 ### USER MANAGEMENT ENDPOINTS
 ### ============================================
 
-### 9. Get All Users - Get list of all users (requires token)
+### 11. Get All Users - Get list of all users (requires token)
 GET {{baseUrl}}/users
 Authorization: Bearer {{accessToken}}
 
-### 10. Get User by ID - Get specific user (requires token)
+### 12. Get User by ID - Get specific user (requires token)
 GET {{baseUrl}}/users/1
 Authorization: Bearer {{accessToken}}
 
-### 11. Create User - Create new user (requires token)
+### 13. Create User - Create new user (requires token)
 POST {{baseUrl}}/users
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
@@ -81,7 +98,7 @@ Content-Type: application/json
   "email": "newuser@example.com"
 }
 
-### 12. Delete User - Delete user (requires token, own account or admin)
+### 14. Delete User - Delete user (requires token, own account or admin)
 DELETE {{baseUrl}}/users/1
 Authorization: Bearer {{accessToken}}
 
@@ -89,10 +106,10 @@ Authorization: Bearer {{accessToken}}
 ### ERROR TESTING
 ### ============================================
 
-### 13. Test Protected Route Without Token (should return 401)
+### 15. Test Protected Route Without Token (should return 401)
 GET {{baseUrl}}/users
 
-### 14. Test Invalid Login (should return 401)
+### 16. Test Invalid Login (should return 401)
 POST {{baseUrl}}/auth/signin
 Content-Type: application/json
 
@@ -101,7 +118,7 @@ Content-Type: application/json
   "password": "wrongpassword"
 }
 
-### 15. Test Duplicate Signup (should return 409)
+### 17. Test Duplicate Signup (should return 409)
 POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
@@ -111,12 +128,29 @@ Content-Type: application/json
   "password": "password123"
 }
 
-### 16. Test Invalid Refresh Token (should return 401)
+### 18. Test Invalid Refresh Token (should return 401)
 POST {{baseUrl}}/auth/refresh
 Content-Type: application/json
 
 {
   "refreshToken": "invalid_token"
+}
+
+### 19. Test Invalid Verification Code (should return 400)
+POST {{baseUrl}}/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "code": "000000"
+}
+
+### 20. Test Resend Verification for Non-existent User (should return 400)
+POST {{baseUrl}}/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com"
 }
 
 ### ============================================
@@ -169,6 +203,47 @@ Content-Type: application/json
 }
 
 ### ============================================
+### EMAIL VERIFICATION WORKFLOW TEST
+### ============================================
+
+### Step 1: Sign up a new user (will receive verification code via email)
+# @name signup_verification
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Verification Test User",
+  "email": "verification@example.com",
+  "password": "password123"
+}
+
+### Step 2: Resend verification code (if needed)
+POST {{baseUrl}}/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "verification@example.com"
+}
+
+### Step 3: Verify email with the code received (replace 123456 with actual code)
+POST {{baseUrl}}/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "verification@example.com",
+  "code": "123456"
+}
+
+### Step 4: Sign in with verified email
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "verification@example.com",
+  "password": "password123"
+}
+
+### ============================================
 ### NOTES
 ### ============================================
 ### 
@@ -176,6 +251,10 @@ Content-Type: application/json
 ### 2. Use the REST Client extension in VS Code to send requests
 ### 3. The @name directive allows you to reference response data in subsequent requests
 ### 4. All user management endpoints require authentication
-### 5. Public endpoints: signup, signin, refresh, google oauth
+### 5. Public endpoints: signup, signin, refresh, google oauth, verify-email, resend-verification
 ### 6. Protected endpoints: profile, logout-all, revoke-tokens, all user endpoints
+### 7. Email verification: After signup, user receives 6-digit code via email
+### 8. Resend verification: Can be used if user doesn't receive the code or it expires
+### 9. Verification codes expire after 10 minutes
+### 10. User must verify email before they can sign in
 

@@ -303,7 +303,9 @@ export class AuthService {
 
     // Check if already verified
     if (user.isEmailVerified) {
-      throw new BadRequestException('Email is already verified');
+      return {
+        message: 'Your email is already verified. No verification code needed.',
+      };
     }
 
     // Generate new verification code

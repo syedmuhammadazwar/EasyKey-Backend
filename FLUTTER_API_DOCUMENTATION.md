@@ -177,7 +177,7 @@ Future<Map<String, dynamic>> verifyEmail({
 
 **POST** `/auth/resend-verification`
 
-Resend verification code to user's email.
+Resend verification code to user's email. If email is already verified, returns a friendly message.
 
 **Request Body:**
 ```dart
@@ -203,10 +203,17 @@ Future<Map<String, dynamic>> resendVerificationCode(String email) async {
 }
 ```
 
-**Response (200 OK):**
+**Response (200 OK) - Unverified Email:**
 ```dart
 {
   "message": "Verification code sent to your email"
+}
+```
+
+**Response (200 OK) - Already Verified Email:**
+```dart
+{
+  "message": "Your email is already verified. No verification code needed."
 }
 ```
 

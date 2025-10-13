@@ -24,9 +24,9 @@ Authorization: Bearer <your_access_token>
 
 | Controller | Endpoints | Public | Protected |
 |------------|-----------|--------|-----------|
-| Auth | 9 | 5 | 4 |
+| Auth | 11 | 7 | 4 |
 | Users | 4 | 0 | 4 |
-| **Total** | **12** | **5** | **7** |
+| **Total** | **15** | **7** | **8** |
 
 ---
 
@@ -49,20 +49,8 @@ Register a new user account.
 **Response (201 Created):**
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "user",
-    "provider": "local",
-    "avatar": null,
-    "isActive": true,
-    "isEmailVerified": false,
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  }
+  "message": "Registration successful! Please check your email for verification code.",
+  "email": "john@example.com"
 }
 ```
 
@@ -248,6 +236,76 @@ Initiate Google OAuth flow. This will redirect the user to Google's OAuth consen
 Google OAuth callback endpoint. This is called by Google after user authentication.
 
 **Response:** Redirects to frontend with tokens in URL parameters
+
+---
+
+### 10. Email Verification
+**POST** `/auth/verify-email`
+
+Verify user's email with the 6-digit code received via email.
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com",
+  "code": "123456"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "user",
+    "provider": "local",
+    "avatar": null,
+    "isActive": true,
+    "isEmailVerified": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid verification code, code expired, or email already verified
+- `400 Bad Request`: User not found
+
+---
+
+### 11. Resend Verification Code
+**POST** `/auth/resend-verification`
+
+Resend verification code to user's email. If email is already verified, returns a friendly message.
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Response (200 OK) - Unverified Email:**
+```json
+{
+  "message": "Verification code sent to your email"
+}
+```
+
+**Response (200 OK) - Already Verified Email:**
+```json
+{
+  "message": "Your email is already verified. No verification code needed."
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: User not found
 
 ---
 
@@ -476,6 +534,25 @@ curl -X POST http://localhost:3000/auth/signin \
   }'
 ```
 
+#### Verify Email
+```bash
+curl -X POST http://localhost:3000/auth/verify-email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "code": "123456"
+  }'
+```
+
+#### Resend Verification Code
+```bash
+curl -X POST http://localhost:3000/auth/resend-verification \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com"
+  }'
+```
+
 #### Get Profile
 ```bash
 curl -X GET http://localhost:3000/auth/profile \
@@ -502,7 +579,20 @@ const signUpResponse = await fetch('/auth/signup', {
   })
 });
 
-const { accessToken, refreshToken, user } = await signUpResponse.json();
+const { message, email } = await signUpResponse.json();
+console.log(message); // "Registration successful! Please check your email for verification code."
+
+// Verify email with code received via email
+const verifyResponse = await fetch('/auth/verify-email', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    email: 'test@example.com',
+    code: '123456' // Replace with actual code from email
+  })
+});
+
+const { accessToken, refreshToken, user } = await verifyResponse.json();
 
 // Use token for protected routes
 const usersResponse = await fetch('/users', {

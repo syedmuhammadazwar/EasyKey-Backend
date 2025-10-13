@@ -62,3 +62,28 @@ Content-Type: application/json
   "password": "password123"
 }
 
+### 9. Verify Email (Replace with actual code from email)
+POST http://localhost:3000/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "code": "123456"
+}
+
+### 10. Resend Verification Code
+POST http://localhost:3000/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "test@example.com"
+}
+
+### 11. Resend Verification Code for Already Verified User
+POST http://localhost:3000/auth/resend-verification
+Content-Type: application/json
+
+{
+  "email": "verified@example.com"
+}
+

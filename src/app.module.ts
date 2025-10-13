@@ -23,6 +23,9 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production', // Only in development
       logging: process.env.NODE_ENV === 'development',
+        ssl: {
+    rejectUnauthorized: false, // ✅ Required for AWS RDS
+  },
     }),
     ThrottlerModule.forRoot([
       {
