@@ -3,6 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 export enum UserRole {
   USER = 'user',
   ADMIN = 'admin',
+  PUP_ADMIN = 'pup_admin',
 }
 
 export enum AuthProvider {
@@ -64,6 +65,9 @@ export class User {
 
   @Column({ nullable: true })
   passwordResetExpires: Date;
+
+  @Column({ nullable: true })
+  assignedTerminalId: number;
 
   @CreateDateColumn()
   createdAt: Date;
