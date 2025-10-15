@@ -47,7 +47,7 @@ Creates a new terminal with basic information.
 
 **cURL Example:**
 ```bash
-curl -X POST http://localhost:3000/terminals \
+curl -X POST http://13.60.27.4:3000/terminals \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -d '{
@@ -95,7 +95,7 @@ Retrieves all terminals (Admin) or assigned terminals (PUP Admin).
 
 **cURL Example:**
 ```bash
-curl -X GET http://localhost:3000/terminals \
+curl -X GET http://13.60.27.4:3000/terminals \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -122,7 +122,7 @@ Retrieves a specific terminal by ID.
 
 **cURL Example:**
 ```bash
-curl -X GET http://localhost:3000/terminals/1 \
+curl -X GET http://13.60.27.4:3000/terminals/1 \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -157,7 +157,7 @@ Updates terminal information.
 
 **cURL Example:**
 ```bash
-curl -X PATCH http://localhost:3000/terminals/1 \
+curl -X PATCH http://13.60.27.4:3000/terminals/1 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -d '{
@@ -184,7 +184,7 @@ Deletes a terminal (will unassign if currently assigned).
 
 **cURL Example:**
 ```bash
-curl -X DELETE http://localhost:3000/terminals/1 \
+curl -X DELETE http://13.60.27.4:3000/terminals/1 \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
 ```
 
@@ -237,7 +237,7 @@ Assigns a terminal to a user with detailed business information. User becomes PU
 
 **cURL Example:**
 ```bash
-curl -X POST http://localhost:3000/terminals/assign \
+curl -X POST http://13.60.27.4:3000/terminals/assign \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -d '{
@@ -284,7 +284,7 @@ Unassigns a terminal from a user. User role reverts to USER.
 
 **cURL Example:**
 ```bash
-curl -X POST http://localhost:3000/terminals/unassign \
+curl -X POST http://13.60.27.4:3000/terminals/unassign \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -d '{
@@ -338,7 +338,7 @@ Retrieves all active terminal assignments with business details.
 
 **cURL Example:**
 ```bash
-curl -X GET http://localhost:3000/terminals/assignments \
+curl -X GET http://13.60.27.4:3000/terminals/assignments \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
 ```
 
@@ -384,7 +384,7 @@ Retrieves assignment details for a specific terminal.
 
 **cURL Example:**
 ```bash
-curl -X GET http://localhost:3000/terminals/assignments/1 \
+curl -X GET http://13.60.27.4:3000/terminals/assignments/1 \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -430,7 +430,7 @@ Retrieves the current user's assignment details.
 
 **cURL Example:**
 ```bash
-curl -X GET http://localhost:3000/terminals/my-assignment \
+curl -X GET http://13.60.27.4:3000/terminals/my-assignment \
   -H "Authorization: Bearer YOUR_PUP_ADMIN_TOKEN"
 ```
 
@@ -460,7 +460,7 @@ Retrieves all users who are currently PUP Admins.
 
 **cURL Example:**
 ```bash
-curl -X GET http://localhost:3000/terminals/assigned-users \
+curl -X GET http://13.60.27.4:3000/terminals/assigned-users \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
 ```
 
@@ -571,7 +571,7 @@ curl -X GET http://localhost:3000/terminals/assigned-users \
 
 ### 1. Create Terminal
 ```bash
-curl -X POST http://localhost:3000/terminals \
+curl -X POST http://13.60.27.4:3000/terminals \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ADMIN_TOKEN" \
   -d '{"terminalNumber": "TERM-001", "status": "active"}'
@@ -579,7 +579,7 @@ curl -X POST http://localhost:3000/terminals \
 
 ### 2. Assign Terminal to User
 ```bash
-curl -X POST http://localhost:3000/terminals/assign \
+curl -X POST http://13.60.27.4:3000/terminals/assign \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ADMIN_TOKEN" \
   -d '{
@@ -598,19 +598,19 @@ curl -X POST http://localhost:3000/terminals/assign \
 
 ### 3. PUP Admin Views Their Assignment
 ```bash
-curl -X GET http://localhost:3000/terminals/my-assignment \
+curl -X GET http://13.60.27.4:3000/terminals/my-assignment \
   -H "Authorization: Bearer PUP_ADMIN_TOKEN"
 ```
 
 ### 4. Admin Views All Assignments
 ```bash
-curl -X GET http://localhost:3000/terminals/assignments \
+curl -X GET http://13.60.27.4:3000/terminals/assignments \
   -H "Authorization: Bearer ADMIN_TOKEN"
 ```
 
 ### 5. Unassign Terminal
 ```bash
-curl -X POST http://localhost:3000/terminals/unassign \
+curl -X POST http://13.60.27.4:3000/terminals/unassign \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ADMIN_TOKEN" \
   -d '{"terminalId": 1}'
